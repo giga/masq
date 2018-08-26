@@ -1,8 +1,8 @@
 module Masq
   class AccountsController < BaseController
-    before_filter :check_disabled_registration, :only => [:new, :create]
-    before_filter :login_required, :except => [:show, :new, :create, :activate, :resend_activation_email]
-    before_filter :detect_xrds, :only => :show
+    before_action :check_disabled_registration, :only => [:new, :create]
+    before_action :login_required, :except => [:show, :new, :create, :activate, :resend_activation_email]
+    before_action :detect_xrds, :only => :show
 
     def show
       @account = Account.where(:login => params[:account], :enabled => true).first
@@ -24,7 +24,7 @@ module Masq
       cookies.delete :auth_token
       attrs = params[:account]
       attrs[:login] = attrs[:email] if email_as_login?
-      signup = Signup.create_account!(attrs)
+      signup = Signup.create_account!(account_params)
       if signup.succeeded?
         redirect_to login_path, :notice => signup.send_activation_email? ?
           t(:thanks_for_signing_up_activation_link) :
@@ -40,7 +40,7 @@ module Masq
       attrs.delete(:email) if email_as_login?
       attrs.delete(:login)
 
-      if current_account.update_attributes(attrs)
+      if current_account.update!(account_params)
         redirect_to edit_account_path(:account => current_account), :notice => t(:profile_updated)
       else
         render :action => 'edit'
@@ -119,6 +119,12 @@ module Masq
         request.format = :xrds
         params[:account] = $1
       end
+    end
+
+    private
+
+    def account_params
+      params.require(:account).permit(:login, :email, :password, :password_confirmation, :yubikey_mandatory)
     end
   end
 end

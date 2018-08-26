@@ -20,7 +20,7 @@ module Masq
     # OpenID parameter reader, use this to access only OpenID
     # request parameters from inside your server controller
     def openid_params
-      @openid_params ||= params.clone.delete_if { |k,v| k.index('openid.') != 0 }
+      @openid_params ||= ActionController::Parameters.new({openid_request: params.clone.delete_if { |k,v| k.index('openid.') != 0 }}).permit(openid_request: {})["openid_request"].to_hash
     end
 
     # OpenID request accessor
@@ -93,9 +93,9 @@ module Masq
       signed_response = openid_server.signatory.sign(resp) if resp.needs_signing
       web_response = openid_server.encode_response(resp)
       case web_response.code
-      when OpenID::Server::HTTP_OK then render(:text => web_response.body, :status => 200)
+      when OpenID::Server::HTTP_OK then render(:plain => web_response.body, :status => 200)
       when OpenID::Server::HTTP_REDIRECT then redirect_to(web_response.headers['location'])
-      else render(:text => web_response.body, :status => 400)
+      else render(:plain => web_response.body, :status => 400)
       end
     end
 

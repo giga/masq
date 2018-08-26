@@ -1,4 +1,4 @@
-class MasqSchema < ActiveRecord::Migration
+class MasqSchema < ActiveRecord::Migration[5.1]
   def change
     # Check for existing masquerade tables. In case the tables already exist,
     # upgrade the database by renaming the tables - otherwise create them.

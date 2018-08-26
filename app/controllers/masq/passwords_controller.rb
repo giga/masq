@@ -1,7 +1,7 @@
 module Masq
   class PasswordsController < BaseController
-    before_filter :check_can_change_password, :only => [:create, :edit, :update]
-    before_filter :find_account_by_reset_code, :only => [:edit, :update]
+    before_action :check_can_change_password, :only => [:create, :edit, :update]
+    before_action :find_account_by_reset_code, :only => [:edit, :update]
 
     # Forgot password
     def create
@@ -17,7 +17,7 @@ module Masq
     # Reset password
     def update
       unless params[:password].blank?
-        if @account.update_attributes(:password => params[:password], :password_confirmation => params[:password_confirmation])
+        if @account.update!(:password => params[:password], :password_confirmation => params[:password_confirmation])
           redirect_to login_path, :notice => t(:password_reset)
         else
           flash[:alert] = t(:password_mismatch)

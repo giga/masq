@@ -12,13 +12,14 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/dennisreimann/masq"
   s.summary     = "Mountable Rails engine that provides OpenID server/identity provider functionality"
   s.description = "Masq supports the current OpenID specifications (OpenID 2.0) and supports SReg, AX (fetch and store requests) and PAPE as well as some custom additions like multifactor authentication using a yubikey"
+  s.licenses    = ["MIT"]
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 3.2.16"
-  s.add_dependency "ruby-openid", "~> 2.7.0"
-  s.add_dependency "ruby-yadis"
-  s.add_dependency "yubikey"
-  s.add_dependency "i18n_data"
+  s.add_dependency "rails", "~> 5.2"
+  s.add_dependency "ruby-openid", "~> 2.7"
+  s.add_dependency "ruby-yadis", "~> 0.3"
+  s.add_dependency "yubikey", "~> 1.4"
+  s.add_dependency "i18n_data", "~> 0.8"
 end

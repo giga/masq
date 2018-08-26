@@ -15,9 +15,9 @@ module Masq
 
     def get_association(server_url, handle=nil)
       assocs = if handle.blank?
-          Association.find_all_by_server_url(server_url)
+          Association.where(server_url: server_url)
         else
-          Association.find_all_by_server_url_and_handle(server_url, handle)
+          Association.where(server_url: server_url, handle: handle)
         end
 
       assocs.reverse.each do |assoc|
@@ -33,7 +33,7 @@ module Masq
     end
 
     def remove_association(server_url, handle)
-      Association.delete_all(['server_url = ? AND handle = ?', server_url, handle]) > 0
+      Association.where(['server_url = ? AND handle = ?', server_url, handle]).delete_all > 0
     end
 
     def use_nonce(server_url, timestamp, salt)

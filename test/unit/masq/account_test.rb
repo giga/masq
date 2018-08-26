@@ -82,7 +82,7 @@ module Masq
     end
 
     def test_should_find_and_activate_by_activation_token
-      @account.update_attribute(:activation_code, 'openid123')
+      @account.update!(:activation_code, 'openid123')
       assert_equal false, @account.active?
       Account.find_and_activate!('openid123')
       @account.reload
@@ -92,7 +92,7 @@ module Masq
 
     def test_should_reset_password
       Masq::Engine.config.masq['trust_basic_auth'] = false # doesn't make sense without
-      accounts(:standard).update_attributes(:password => 'new password', :password_confirmation => 'new password')
+      accounts(:standard).update!(:password => 'new password', :password_confirmation => 'new password')
       assert_equal accounts(:standard), Account.authenticate('quentin', 'new password')
     end
 

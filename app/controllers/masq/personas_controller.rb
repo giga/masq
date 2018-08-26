@@ -1,7 +1,7 @@
 module Masq
   class PersonasController < BaseController
-    before_filter :login_required
-    before_filter :store_return_url, :only => [:new, :edit]
+    before_action :login_required
+    before_action :store_return_url, :only => [:new, :edit]
 
     helper_method :persona
 
@@ -26,7 +26,7 @@ module Masq
 
     def update
       respond_to do |format|
-        if persona.update_attributes(params[:persona])
+        if persona.update!(persona_params)
           flash[:notice] = t(:persona_updated)
           format.html { redirect_back_or_default account_personas_path }
         else
@@ -51,7 +51,11 @@ module Masq
     def persona
       @persona ||= params[:id].present? ?
         current_account.personas.find(params[:id]) :
-        current_account.personas.new(params[:persona])
+        current_account.personas.new(persona_params)
+    end
+
+    def persona_params
+      params.require(:persona).permit(:title, :nickname, :email, :fullname, :postcode, :country, :language, :timezone, :gender, :address, :address_additional, :city, :state, :company_name, :job_title, :address_business, :address_additional_business, :postcode_business, :city_business, :state_business, :country_business, :phone_home, :phone_mobile, :phone_work, :phone_fax, :im_aim, :im_icq, :im_msn, :im_yahoo, :im_jabber, :im_skype, :image_default, :biography, :web_default, :web_blog, :dob_day, :dob_month, :dob_year)
     end
 
     def redirect_back_or_default(default)

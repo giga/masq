@@ -2,14 +2,14 @@ require 'digest/sha1'
 
 module Masq
   class Account < ActiveRecord::Base
-    has_many :personas, :dependent => :delete_all, :order => 'id ASC'
+    has_many :personas, -> { order 'id ASC' }, dependent: :delete_all
     has_many :sites, :dependent => :destroy
     belongs_to :public_persona, :class_name => "Persona"
 
     validates_presence_of :login
     validates_length_of :login, :within => 3..254
     validates_uniqueness_of :login, :case_sensitive => false
-    validates_format_of :login, :with => /^[A-Za-z0-9_@.-]+$/
+    validates_format_of :login, :with => /\A[A-Za-z0-9_@.-]+\z/
     validates_presence_of :email
     validates_uniqueness_of :email, :case_sensitive => false
     validates_format_of :email, :with => /(^([^@\s]+)@((?:[-_a-z0-9]+\.)+[a-z]{2,})$)|(^$)/i
@@ -23,10 +23,9 @@ module Masq
     before_save   :encrypt_password
     after_save    :deliver_forgot_password
 
-    attr_accessible :login, :email, :password, :password_confirmation, :public_persona_id, :yubikey_mandatory
     attr_accessor :password
 
-    class ActivationCodeNotFound < StandardError; end
+   class ActivationCodeNotFound < StandardError; end
     class AlreadyActivated < StandardError
       attr_reader :user, :message
       def initialize(account, message=nil)

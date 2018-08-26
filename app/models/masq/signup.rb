@@ -25,10 +25,13 @@ module Masq
     end
 
     def create_account!
+      make_default_persona
+      account.personas = []
       return false unless account.valid?
       make_activation_code if send_activation_email?
       account.save!
-      make_default_persona
+      account.public_persona.account = account
+      account.public_persona.save!
       if send_activation_email?
         AccountMailer.signup_notification(account).deliver
       else
@@ -44,7 +47,6 @@ module Masq
     def make_default_persona
       account.public_persona = account.personas.build(:title => "Standard", :email => account.email)
       account.public_persona.deletable = false
-      account.public_persona.save!
     end
 
   end

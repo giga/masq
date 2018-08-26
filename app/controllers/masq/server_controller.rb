@@ -2,13 +2,13 @@ module Masq
   class ServerController < BaseController
     # CSRF-protection must be skipped, because incoming
     # OpenID requests lack an authenticity token
-    skip_before_filter :verify_authenticity_token
+    skip_before_action :verify_authenticity_token
     # Error handling
     rescue_from OpenID::Server::ProtocolError, :with => :render_openid_error
     # Actions other than index require a logged in user
-    before_filter :login_required, :except => [:index, :cancel, :seatbelt_config, :seatbelt_login_state]
-    before_filter :ensure_valid_checkid_request, :except => [:index, :cancel, :seatbelt_config, :seatbelt_login_state]
-    after_filter :clear_checkid_request, :only => [:cancel, :complete]
+    before_action :login_required, :except => [:index, :cancel, :seatbelt_config, :seatbelt_login_state]
+    before_action :ensure_valid_checkid_request, :except => [:index, :cancel, :seatbelt_config, :seatbelt_login_state]
+    after_action :clear_checkid_request, :only => [:cancel, :complete]
     # These methods are used to display information about the request to the user
     helper_method :sreg_request, :ax_fetch_request, :ax_store_request
 
@@ -26,7 +26,7 @@ module Masq
           elsif openid_request
             handle_non_checkid_request
           else
-            render :text => t(:this_is_openid_not_a_human_ressource)
+            render plain: t(:this_is_openid_not_a_human_ressource)
           end
         end
         format.xrds
@@ -76,7 +76,7 @@ module Masq
         resp = checkid_request.answer(true, nil, identifier(current_account))
         if params[:always]
           @site = current_account.sites.find_or_create_by_persona_id_and_url(params[:site][:persona_id], params[:site][:url])
-          @site.update_attributes(params[:site])
+          @site.update!(site_params)
         elsif sreg_request || ax_fetch_request
           @site = current_account.sites.find_or_initialize_by_persona_id_and_url(params[:site][:persona_id], params[:site][:url])
           @site.attributes = params[:site]
@@ -145,12 +145,12 @@ module Masq
     # Deletes the old request when a new one comes in.
     def clear_checkid_request
       unless session[:request_token].blank?
-        OpenIdRequest.destroy_all :token => session[:request_token]
+        OpenIdRequest.where(token: session[:request_token]).destroy_all
         session[:request_token] = nil
       end
     end
 
-    # Use this as before_filter for every CheckID request based action.
+    # Use this as before_action for every CheckID request based action.
     # Loads the current openid request and cancels if none can be found.
     # The user has to log in, if he has not verified his ownership of
     # the identifier, yet.
@@ -204,10 +204,14 @@ module Masq
       when OpenID::Server::MalformedTrustRoot then "Malformed trust root '#{exception.to_s}'"
       else exception.to_s
       end
-      render :text => h("Invalid OpenID request: #{error}"), :status => 500
+      render :plain => h("Invalid OpenID request: #{error}"), :status => 500
     end
 
     private
+
+    def site_params
+      params.require(:site).permit(:url, :persona_id, :properties, :ax_fetch, :sreg)
+    end
 
     # The NIST Assurance Level, see:
     # http://openid.net/specs/openid-provider-authentication-policy-extension-1_0-01.html#anchor12
